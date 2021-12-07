@@ -1,0 +1,26 @@
+{
+    "name": "nf-core/test",
+    "homePage": "https://github.com/nf-core/test",
+    "repos": {
+        "nf-core/modules": {
+            "bedtools/genomecov": {
+                "git_sha": "9d0cad583b9a71a6509b754fdf589cbfbed08961"
+            },
+            "cutadapt": {
+                "git_sha": "9d0cad583b9a71a6509b754fdf589cbfbed08961"
+            },
+            "fastqc": {
+                "git_sha": "9d0cad583b9a71a6509b754fdf589cbfbed08961"
+            },
+            "samtools/index": {
+                "git_sha": "20d8250d9f39ddb05dfb437603aaf99b5c0b2b41"
+            },
+            "samtools/merge": {
+                "git_sha": "20d8250d9f39ddb05dfb437603aaf99b5c0b2b41"
+            },
+            "star/align": {
+                "git_sha": "9d0cad583b9a71a6509b754fdf589cbfbed08961"
+            }
+        }
+    }
+}

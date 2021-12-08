@@ -12,3 +12,9 @@ module load Singularity
 srun nextflow run main.nf \
     -profile crick \
     --input '/camp/lab/luscomben/home/users/chakraa2/projects/quantseq/nextflow/data/*.fastq.gz'
+
+srun nextflow run main.nf \
+    -profile crick \
+    --input 'testdata/WT_neg_siTDP2_1.chr21.fastq.gz' \
+    --genome GRCh38 \
+    --gtf '/camp/lab/luscomben/home/users/jonesm5/2020_10_20_pum1/data/gencode.v35.annotation.gff3.gz'

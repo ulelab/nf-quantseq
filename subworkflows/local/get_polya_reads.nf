@@ -15,5 +15,5 @@ workflow GET_POLYA_READS {
     )
 
     emit:
-    polya_trimmed_reads = CUTADAPT.out.reads
+    reads = CUTADAPT.out.reads
 }

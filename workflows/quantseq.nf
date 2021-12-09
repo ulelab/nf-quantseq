@@ -4,6 +4,7 @@ include { GET_POLYA_READS } from '../subworkflows/local/get_polya_reads.nf'
 include { STAR_GENOMEGENERATE } from '../modules/nf-core/modules/star/genomegenerate/main.nf'
 include { STAR_ALIGN } from '../modules/nf-core/modules/star/align/main.nf'
 include { GUNZIP } from '../modules/nf-core/modules/gunzip/main.nf'
+include { POLYA_COVERAGE } from '../subworkflows/local/polya_coverage.nf'
 
 workflow QUANTSEQ {
 
@@ -41,7 +42,10 @@ workflow QUANTSEQ {
             path -> [['id': 'gtf'], path]
         }
     )
-    GUNZIP.out.gunzip.map{ tuple -> tuple[1] }.set{ gtf_gunzip }
+    GUNZIP.out.gunzip
+        .map{ tuple -> tuple[1] }
+        .collect()
+        .set{ gtf_gunzip }
 
     STAR_GENOMEGENERATE(
         params.fasta,
@@ -50,11 +54,20 @@ workflow QUANTSEQ {
 
     STAR_ALIGN(
         GET_POLYA_READS.out.reads,
-        STAR_GENOMEGENERATE.out.index,
+        STAR_GENOMEGENERATE.out.index.collect(),
         gtf_gunzip,
-        true, // star_ignore_sjdbgtf - Required for the GTF to be used to detect splice junctions
-        '',   // seq_platform
-        ''    // seq_center
+        true,  // star_ignore_sjdbgtf - Required for the GTF to be used to detect splice junctions
+        false, // seq_platform
+        false  // seq_center
+    )
+    STAR_ALIGN.out.bam_sorted
+        .map{ tuple -> tuple[1] }
+        .collect()
+        .map{ paths -> [['id': 'merged_polya'], paths] }
+        .set{ collected_reads }
+
+    POLYA_COVERAGE(
+        collected_reads
     )
 
 }

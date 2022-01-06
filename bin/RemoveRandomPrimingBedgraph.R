@@ -25,8 +25,6 @@ if(length(opt) != 9) {
   stop("Not enough arguments.")
 }
 
-# opt <- list(bed = "~/Ule/martina/quantseq/results/mergedclusters/mergedclusters.bed")
-
 # ==========
 # Load libraries
 # ==========
@@ -40,7 +38,6 @@ suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(scales))
 suppressPackageStartupMessages(library(ggthemes))
 suppressPackageStartupMessages(library(cowplot))
-suppressPackageStartupMessages(library(parallel))
 
 # ==========
 # Remove random priming before merging
@@ -67,13 +64,11 @@ message("Getting 120 nt window sequence")
 
 seqlevelsStyle(polya.gr) <- "UCSC"
 polya.gr <- keepStandardChromosomes(polya.gr, pruning.mode = "coarse")
-# polya.gr <- keepStandardChromosomes(polya.gr)
 
 polya.120.gr <- resize(resize(polya.gr, width = 1, fix = "end"), width = 121, fix = "center") # fix end of polya region
 
 # Get sequence for that region
-# polya.gr$sequence <- getSeq(Mmusculus, polya.120.gr)
-ptm <- proc.time(); polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr); proc.time() - ptm
+polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr)
 
 # ==========
 # A content
@@ -81,19 +76,16 @@ ptm <- proc.time(); polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr); proc.ti
 
 message("Examining A content")
 
-ptm <- proc.time()
 # Examine the A content in the 20 nt downstream of the start of the polyA cluster
 cl <- makeForkCluster(4)
-polya.gr$A_content <- parSapply(cl = cl, polya.gr$sequence, function(x) {
+polya.gr$A_content <- unlist(lapply(polya.gr$sequence, function(x) {
 
   downstream.seq <- substr(x, start = 61, stop = 80)
   fraction_A <- letterFrequency(DNAString(downstream.seq), "A", as.prob = TRUE)
 
   return(fraction_A)
 
-})
-stopCluster(cl)
-proc.time() - ptm
+}))
 
 # Plot A content distribution
 p <- ggplot(as.data.table(polya.gr), aes(x = A_content)) +
@@ -127,8 +119,6 @@ polya.dt[is.na(PAS)][grepl("ATTAAA",upstream.seq)]$PAS <- "ATTAAA"
 polya.dt[is.na(PAS)][grepl(paste(APA, collapse = "|"),upstream.seq)]$PAS <- "APA"
 polya.dt[is.na(PAS), PAS := "None"]
 stopifnot(all(!is.na(polya.dt$PAS))) # make sure all allocated
-
-# polya.dt[, .N, by = PAS]
 
 # polya.dt$PAS <- factor(polya.dt$PAS, levels = c("AATAAA", "ATTAAA", "APA", "None"))
 p <- ggplot(polya.dt, aes(x = PAS, y = A_content, colour = PAS)) +

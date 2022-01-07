@@ -8,6 +8,7 @@ channels:
 dependencies:
   - conda-forge::r-base=4.1.2
   - conda-forge::r-optparse=1.7.1
+  - conda-forge::r-pbapply=1.5_0
   - conda-forge::r-data.table=1.14.2
   - conda-forge::r-ggplot2=3.3.5
   - conda-forge::r-scales=1.1.1

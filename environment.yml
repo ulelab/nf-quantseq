@@ -1,0 +1,22 @@
+# You can use this file to create a conda environment for this pipeline:
+#   conda env create -f environment.yml
+name: nf-quantseq-dev
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - conda-forge::r-base=4.1.2
+  - conda-forge::r-optparse=1.7.1
+  - conda-forge::r-pbapply=1.5_0
+  - conda-forge::r-data.table=1.14.2
+  - conda-forge::r-ggplot2=3.3.5
+  - conda-forge::r-scales=1.1.1
+  - conda-forge::r-ggthemes=4.2.4
+  - conda-forge::r-cowplot=1.1.1
+  - bioconda::bioconductor-rtracklayer=1.54.0
+  - bioconda::bioconductor-genomicfeatures=1.46.1
+  - bioconda::bioconductor-bsgenome.hsapiens.ucsc.hg38=1.4.4
+  - bioconda::bioconductor-bsgenome.mmusculus.ucsc.mm10=1.4.3
+  - bioconda::bioconductor-bsgenome.rnorvegicus.ucsc.rn6=1.4.1
+  - bioconda::bioconductor-bsgenome.drerio.ucsc.danrer7=1.4.0

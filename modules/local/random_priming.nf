@@ -13,21 +13,21 @@ process RANDOM_PRIMING {
     tuple val(meta), path(neg_bedgraph)
 
     output:
-    tuple val(meta), path(bed)                , emit: bed
-    tuple val(meta), path(unique_bed)         , emit: unique_bed
-    tuple val(meta), path('*.log')            , emit: log
-    path "versions.yml"                       , emit: versions
+    tuple val(meta), path("${prefix}.bed")       , emit: bed
+    tuple val(meta), path("${prefix}.unique.bed"), emit: unique_bed
+    tuple val(meta), path('*.log')               , emit: log
+    path "versions.yml"                          , emit: versions
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    prefix = task.ext.prefix ?: "${meta.id}"
     """
-    Rscript --vanilla remove_random_priming.R \
-    --bg_pos $pos_bedgraph \
-    --bg_neg $neg_bedgraph \
-    --output $bed \
-    $args \
-    > remove_random_priming.log 2>&1
+    remove_random_priming.R \
+        --bg_pos $pos_bedgraph \
+        --bg_neg $neg_bedgraph \
+        --output ${prefix}.bed \
+        $args \
+        > remove_random_priming.log 2>&1
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

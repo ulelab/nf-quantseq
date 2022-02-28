@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env -S Rscript --vanilla
 
 # Rscript to quality control Quant seq random priming removal
 # A. M. Chakrabarti
@@ -77,7 +77,6 @@ polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr)
 message("Examining A content")
 
 # Examine the A content in the 20 nt downstream of the start of the polyA cluster
-cl <- makeForkCluster(4)
 polya.gr$A_content <- unlist(lapply(polya.gr$sequence, function(x) {
 
   downstream.seq <- substr(x, start = 61, stop = 80)
@@ -149,7 +148,7 @@ PlotNucleotideCompositionByGroup <- function(dt, group) {
                         count = elementNROWS(dt.list))
 
   dt.list.nuc.melted <- lapply(dt.list, function(dt) {
-
+    if (nrow(dt) == 0) {return(NULL)}
     seq.mat <- tstrsplit(dt$sequence, "", fixed = TRUE)
     seq.nuc <- lapply(seq.mat, function(x) {
 
@@ -163,7 +162,6 @@ PlotNucleotideCompositionByGroup <- function(dt, group) {
     seq.nuc.melted.dt <- melt.data.table(seq.nuc.dt, id.vars = "nuc")
     seq.nuc.melted.dt$variable <- as.numeric(seq.nuc.melted.dt$variable)
     return(seq.nuc.melted.dt)
-
   })
 
   seq.nuc.melted.dt <- rbindlist(dt.list.nuc.melted)

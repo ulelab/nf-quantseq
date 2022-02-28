@@ -67,7 +67,8 @@ workflow QUANTSEQ {
         .set{ collected_reads }
 
     POLYA_COVERAGE(
-        collected_reads
+        collected_reads,
+        gtf_gunzip
     )
 
 }

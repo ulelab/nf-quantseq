@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env -S Rscript --vanilla
 
 # Rscript to annotate polyA sites
 # A. M. Chakrabarti
@@ -19,10 +19,6 @@ if(length(opt) != 4) {
   print_help(opt_parser)
   stop("Not enough arguments.")
 }
-
-# opt <- list(bed = "~/Ule/martina/quantseq/201905_PM19083/v2/mergedclusters/polyAclusters.unique.bed",
-#             gff3 = "~/Ule/martina/ref/gencode.v29.annotation.gtf.gz", # "~/Ule/ref/gencode.v19.annotation.gff3.gz",
-#             threads = 4)
 
 # ==========
 # Load data

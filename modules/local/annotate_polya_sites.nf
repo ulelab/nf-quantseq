@@ -1,4 +1,4 @@
-process ANNOTATE_PAS {
+process ANNOTATE_POLYA_SITES {
     tag "$meta.id"
     label 'process_medium'
 
@@ -10,22 +10,22 @@ process ANNOTATE_PAS {
 
     input:
     tuple val(meta), path(bed)
-    gff3
+    path gff3
 
     output:
-    tuple val(meta), path('*.annotated.bed')  , emit: bed
-    tuple val(meta), path('*.log')            , emit: log
-    path "versions.yml"                       , emit: versions
+    tuple val(meta), path('*.annotated.bed'), emit: bed
+    tuple val(meta), path('*.log')          , emit: log
+    path "versions.yml"                     , emit: versions
 
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    Rscript --vanilla annotate_pas.R \
-    --threads ${task.cpus} \
-    --bed $bed \
-    --gff3 $gff3 \
-    > annotate_pas.log 2>&1
+    annotate_pas.R \
+        --threads ${task.cpus} \
+        --bed $bed \
+        --gff3 $gff3 \
+        > annotate_pas.log 2>&1
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

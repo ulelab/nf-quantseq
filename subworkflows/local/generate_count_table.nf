@@ -10,6 +10,9 @@ include {
     UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_POS;
     UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_NEG
 } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main.nf'
+include { BEDTOOLS_BAMTOBED } from '../../modules/nf-core/modules/bedtools/bamtobed/main.nf'
+include { BEDTOOLS_WINDOW } from '../../modules/local/bedtools_window.nf'
+include { AWK as BEDGRAPHCONVERT_AWK } from '../../modules/local/awk.nf'
 
 workflow GENERATE_COUNT_TABLE {
     take:
@@ -17,6 +20,7 @@ workflow GENERATE_COUNT_TABLE {
     star_index
     gtf
     fai
+    polya_bed
 
     main:
     CUTADAPT(
@@ -74,6 +78,23 @@ workflow GENERATE_COUNT_TABLE {
     UCSC_BEDGRAPHTOBIGWIG_NEG(
         BEDTOOLS_SORT_NEG.out.sorted,
         fai.collect()
+    )
+
+    // Create count table
+
+    BEDTOOLS_BAMTOBED(
+        STAR_ALIGN.out.bam_sorted
+    )
+
+    BEDTOOLS_WINDOW(
+        polya_bed.collect(),
+        BEDTOOLS_BAMTOBED.out.bed
+    )
+
+    BEDGRAPHCONVERT_AWK(
+        BEDTOOLS_WINDOW.out.overlap,
+        '{{OFS="\t"}}{{if($6 == "+") {{print $1, $2, $3, $5}} else {{print $1, $2, $3, -$5}}}}',
+        '| sort -k1,1 -k2,2n'
     )
 
     emit:

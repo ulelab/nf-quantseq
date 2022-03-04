@@ -87,7 +87,8 @@ workflow QUANTSEQ {
         CUTADAPT_ADAPTERS.out.reads,
         star_index,
         gtf_gunzip,
-        fai
+        fai,
+        POLYA_COVERAGE.out.polya_bed
     )
 
 }

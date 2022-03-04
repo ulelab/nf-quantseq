@@ -41,5 +41,5 @@ workflow POLYA_COVERAGE {
     )
 
     emit:
-    bed = ANNOTATE_POLYA_SITES.out.bed
+    polya_bed = ANNOTATE_POLYA_SITES.out.bed
 }

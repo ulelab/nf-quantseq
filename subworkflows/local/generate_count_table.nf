@@ -93,7 +93,7 @@ workflow GENERATE_COUNT_TABLE {
 
     BEDGRAPHCONVERT_AWK(
         BEDTOOLS_WINDOW.out.overlap,
-        '{{OFS="\t"}}{{if($6 == "+") {{print $1, $2, $3, $5}} else {{print $1, $2, $3, -$5}}}}',
+        '{{OFS="\t"}}{{if($6 == "+") {{print $1, $2, $3, $10}} else {{print $1, $2, $3, -$10}}}}',
         '| sort -k1,1 -k2,2n'
     )
 

@@ -23,8 +23,17 @@ workflow GENERATE_COUNT_TABLE {
     polya_bed
 
     main:
+
+    reads
+        .map{ tuple ->
+            def new_meta = tuple[0].clone()
+            new_meta["id"] += ".polya_trimmed"
+            [new_meta, tuple[1]]
+        }
+        .set{ ch_cutadapt_input }
+
     CUTADAPT(
-        reads
+        ch_cutadapt_input
     )
 
     STAR_ALIGN(

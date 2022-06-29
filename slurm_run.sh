@@ -11,10 +11,6 @@ module load Singularity
 
 srun nextflow run main.nf \
     -profile crick \
-    --input '/camp/lab/luscomben/home/users/chakraa2/projects/quantseq/nextflow/data/*.fastq.gz'
-
-srun nextflow run main.nf \
-    -profile crick \
     -resume \
     --input 'testdata/*.fastq.gz' \
     --genome GRCh38 \

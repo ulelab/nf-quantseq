@@ -16,13 +16,19 @@ option_list <- list(make_option(c("", "--bg_pos"), action = "store", type = "cha
                     make_option(c("", "--pas"), action = "store", type = "character", help = "Threshold for sites with canonical polyA signal"),
                     make_option(c("", "--apa"), action = "store", type = "character", help = "Threshold for sites with alternative polyA signal"),
                     make_option(c("", "--nopas"), action = "store", type = "character", help = "Threshold for sites with no polyA signal"),
-                    make_option(c("", "--clusterdist"), action = "store", type = "character", help = "Distance within which to cluster pA sites"))
+                    make_option(c("", "--clusterdist"), action = "store", type = "character", help = "Distance within which to cluster pA sites"),
+                    make_option(c("", "--org"), action = "store", type = "character", help = "Organism [human, mouse, rat]"))
 opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
-if(length(opt) != 9) {
+if(length(opt) != 10) {
   print_help(opt_parser)
   stop("Not enough arguments.")
+}
+
+if(!opt$org %in% c("human", "mouse", "rat")) {
+  print_help(opt_parser)
+  stop("--org should be one of [human, mouse, rat].")
 }
 
 # ==========
@@ -34,6 +40,8 @@ suppressPackageStartupMessages(library(rtracklayer))
 suppressPackageStartupMessages(library(GenomicFeatures))
 suppressPackageStartupMessages(library(GenomicRanges))
 suppressPackageStartupMessages(library(BSgenome.Hsapiens.UCSC.hg38))
+suppressPackageStartupMessages(library(BSgenome.Mmusculus.UCSC.mm10))
+suppressPackageStartupMessages(library(BSgenome.Rnorvegicus.UCSC.rn6))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(scales))
 suppressPackageStartupMessages(library(ggthemes))
@@ -68,7 +76,9 @@ polya.gr <- keepStandardChromosomes(polya.gr, pruning.mode = "coarse")
 polya.120.gr <- resize(resize(polya.gr, width = 1, fix = "end"), width = 121, fix = "center") # fix end of polya region
 
 # Get sequence for that region
-polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr)
+if(opt$org == "human") { polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr) }
+if(opt$org == "mouse") { polya.gr$sequence <- getSeq(Mmusculus, polya.120.gr) }
+if(opt$org == "rat") { polya.gr$sequence <- getSeq(Rnorvegicus, polya.120.gr) }
 
 # ==========
 # A content

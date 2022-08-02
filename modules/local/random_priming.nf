@@ -28,6 +28,7 @@ process RANDOM_PRIMING {
         --bg_pos $pos_bedgraph \
         --bg_neg $neg_bedgraph \
         --output ${prefix}.bed \
+        --cores ${task.cpus} \
         $args \
         > remove_random_priming.log 2>&1
 

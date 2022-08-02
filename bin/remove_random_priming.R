@@ -17,11 +17,12 @@ option_list <- list(make_option(c("", "--bg_pos"), action = "store", type = "cha
                     make_option(c("", "--apa"), action = "store", type = "character", help = "Threshold for sites with alternative polyA signal"),
                     make_option(c("", "--nopas"), action = "store", type = "character", help = "Threshold for sites with no polyA signal"),
                     make_option(c("", "--clusterdist"), action = "store", type = "character", help = "Distance within which to cluster pA sites"),
-                    make_option(c("", "--org"), action = "store", type = "character", help = "Organism [human, mouse, rat]"))
+                    make_option(c("", "--org"), action = "store", type = "character", help = "Organism [human, mouse, rat]"),
+                    make_option(c("", "--cores"), action = "store", type = "integer", help = "Numer of processors"))
 opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
-if(length(opt) != 10) {
+if(length(opt) != 11) {
   print_help(opt_parser)
   stop("Not enough arguments.")
 }
@@ -46,6 +47,7 @@ suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(scales))
 suppressPackageStartupMessages(library(ggthemes))
 suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(parallel))
 
 # ==========
 # Remove random priming before merging
@@ -87,14 +89,14 @@ if(opt$org == "rat") { polya.gr$sequence <- getSeq(Rnorvegicus, polya.120.gr) }
 message("Examining A content")
 
 # Examine the A content in the 20 nt downstream of the start of the polyA cluster
-polya.gr$A_content <- unlist(lapply(polya.gr$sequence, function(x) {
+polya.gr$A_content <- unlist(mclapply(polya.gr$sequence, function(x) {
 
   downstream.seq <- substr(x, start = 61, stop = 80)
   fraction_A <- letterFrequency(DNAString(downstream.seq), "A", as.prob = TRUE)
 
   return(fraction_A)
 
-}))
+}, mc.cores = opt$cores))
 
 # Plot A content distribution
 p <- ggplot(as.data.table(polya.gr), aes(x = A_content)) +

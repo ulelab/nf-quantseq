@@ -71,12 +71,12 @@ workflow GENERATE_COUNT_TABLE {
 
     BEDTOOLS_SORT_POS(
         bedgraph_pos,
-        "sorted.bg"
+        "sorted.bedgraph"
     )
 
     BEDTOOLS_SORT_NEG(
         bedgraph_neg,
-        "sorted.bg"
+        "sorted.bedgraph"
     )
 
     UCSC_BEDGRAPHTOBIGWIG_POS(

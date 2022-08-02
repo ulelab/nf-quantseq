@@ -18,6 +18,7 @@ process RANDOM_PRIMING {
     tuple val(meta), path("${prefix}.bedgraph")       , emit: bedgraph
     tuple val(meta), path("${prefix}.unique.bedgraph"), emit: unique_bedgraph
     tuple val(meta), path('*.log')                    , emit: log
+    tuple val(meta), path('*.pdf')                    , emit: plots
     path "versions.yml"                               , emit: versions
 
     script:

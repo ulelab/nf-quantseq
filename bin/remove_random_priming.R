@@ -277,6 +277,7 @@ message(paste0("Output clusters after filtering: ", nrow(polya.filtered.bed)))
 # Merge within window and select unique pA site
 # ==========
 
+polya.filtered.bed[, start := start + 1L] # shift back before 
 bg <- GRanges(polya.filtered.bed)
 bed <- reduce(bg, min.gapwidth = as.integer(opt$clusterdist)) # merge ones within 10 nt of each other
 bed$id <- paste0("PAS", 1:length(bed))
@@ -300,6 +301,7 @@ neg.bg <- neg.bg[start == prime_3]
 unique.bg <- rbind(pos.bg, neg.bg)
 stopifnot(all(bg$id %in% unique.bg$id))
 
+unique.bg[, id := paste0(id, "_", PAS, "_", A_content)]
 unique.bg <- GRanges(unique.bg)
 unique.bg$name <- unique.bg$id
 export.bed(unique.bg, gsub("bed$", "filteredunique.bed", opt$output))

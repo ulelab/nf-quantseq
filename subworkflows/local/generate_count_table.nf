@@ -57,7 +57,7 @@ workflow GENERATE_COUNT_TABLE {
         .map{ tuple ->
             def new_meta = tuple[0].clone()
             new_meta["id"] += "_pos"
-            [new_meta, tuple[1][0]] 
+            [new_meta, tuple[1]] 
         }
         .set{ bedgraph_pos }
 
@@ -65,7 +65,7 @@ workflow GENERATE_COUNT_TABLE {
         .map{ tuple ->
             def new_meta = tuple[0].clone()
             new_meta["id"] += "_neg"
-            [new_meta, tuple[1][0]] 
+            [new_meta, tuple[1]] 
         }
         .set{ bedgraph_neg }
 

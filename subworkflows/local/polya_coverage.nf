@@ -36,7 +36,7 @@ workflow POLYA_COVERAGE {
     )
 
     ANNOTATE_POLYA_SITES(
-        RANDOM_PRIMING.out.unique_bed,
+        RANDOM_PRIMING.out.filteredunique_bed,
         gtf
     )
 

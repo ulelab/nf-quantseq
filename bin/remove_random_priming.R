@@ -72,6 +72,8 @@ message(length(polya.gr), " out of ", length(bg), " remaining")
 
 message("Getting 120 nt window sequence")
 
+sls <- seqlevelsStyle(polya.gr)[1]
+
 seqlevelsStyle(polya.gr) <- "UCSC"
 polya.gr <- keepStandardChromosomes(polya.gr, pruning.mode = "coarse")
 
@@ -81,6 +83,8 @@ polya.120.gr <- resize(resize(polya.gr, width = 1, fix = "end"), width = 121, fi
 if(opt$org == "human") { polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr) }
 if(opt$org == "mouse") { polya.gr$sequence <- getSeq(Mmusculus, polya.120.gr) }
 if(opt$org == "rat") { polya.gr$sequence <- getSeq(Rnorvegicus, polya.120.gr) }
+
+seqlevelsStyle(polya.gr) <- sls
 
 # ==========
 # A content
@@ -261,13 +265,13 @@ message(paste0("Input clusters: ", nrow(polya.dt)))
 message(paste0("Output clusters after filtering: ", nrow(polya.filtered.bed)))
 
 # Write filtered BED file
-fwrite(polya.filtered.bed, opt$output, sep = "\t", col.names = FALSE)
+# fwrite(polya.filtered.bed, opt$output, sep = "\t", col.names = FALSE)
 
 # Write filtered bedgraph file
-polya.filtered.bed[, start := start + 1L]
-polya.bg <- GRanges(polya.filtered.bed)
-polya.bg[strand(polya.bg) == "-"]$score <- -polya.bg[strand(polya.bg) == "-"]$score
-export.bedGraph(polya.bg, paste0(opt$output, "graph"))
+# polya.filtered.bed[, start := start + 1L]
+# polya.bg <- GRanges(polya.filtered.bed)
+# polya.bg[strand(polya.bg) == "-"]$score <- -polya.bg[strand(polya.bg) == "-"]$score
+# export.bedGraph(polya.bg, paste0(opt$output, "graph"))
 
 # ==========
 # Merge within window and select unique pA site
@@ -298,10 +302,10 @@ stopifnot(all(bg$id %in% unique.bg$id))
 
 unique.bg <- GRanges(unique.bg)
 unique.bg$name <- unique.bg$id
-export.bed(unique.bg, gsub("bed$", "unique.bed", opt$output))
+export.bed(unique.bg, gsub("bed$", "filteredunique.bed", opt$output))
 
-unique.bg[strand(unique.bg) == "-"]$score <- -unique.bg[strand(unique.bg) == "-"]$score
-export.bedGraph(unique.bg, gsub("bed$", "unique.bedgraph", opt$output))
+# unique.bg[strand(unique.bg) == "-"]$score <- -unique.bg[strand(unique.bg) == "-"]$score
+# export.bedGraph(unique.bg, gsub("bed$", "unique.bedgraph", opt$output))
 
 # ==========
 # End

@@ -13,13 +13,11 @@ process RANDOM_PRIMING {
     tuple val(meta), path(neg_bedgraph)
 
     output:
-    tuple val(meta), path("${prefix}.bed")            , emit: bed
-    tuple val(meta), path("${prefix}.unique.bed")     , emit: unique_bed
-    tuple val(meta), path("${prefix}.bedgraph")       , emit: bedgraph
-    tuple val(meta), path("${prefix}.unique.bedgraph"), emit: unique_bedgraph
-    tuple val(meta), path('*.log')                    , emit: log
-    tuple val(meta), path('*.pdf')                    , emit: plots
-    path "versions.yml"                               , emit: versions
+    tuple val(meta), path("${prefix}.artefactsannotated.bed")       , emit: artefactsannotated_bed
+    tuple val(meta), path("${prefix}.filteredunique.bed")           , emit: filteredunique_bed
+    tuple val(meta), path('*.log')                                  , emit: log
+    tuple val(meta), path('*.pdf')                                  , emit: plots
+    path "versions.yml"                                             , emit: versions
 
     script:
     def args = task.ext.args ?: ''

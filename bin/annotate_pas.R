@@ -11,11 +11,12 @@
 suppressPackageStartupMessages(library(optparse))
 option_list <- list(make_option(c("-b", "--bed"), action = "store", type = "character", help = "BED file of merged polyA clusters"),
                     make_option(c("-g", "--gff3"), action = "store", type = "character", help = "Gencode annotation (GFF3)"),
+                    make_option(c("", "--ensembl"), action = "store_true", type = "logical", help = "Annotation from Ensembl", default = FALSE),
                     make_option(c("-t", "--threads"), action = "store", type = "integer", help = "Number of threads"))
 opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
-if(length(opt) != 4) {
+if(length(opt) != 5) {
   print_help(opt_parser)
   stop("Not enough arguments.")
 }
@@ -64,9 +65,10 @@ names(utr3) <- NULL
 utr3$gene_id <- tx$gene_id[match(utr3$tx_name, tx$tx_name)] # add gene id
 utr3.l <- split(utr3, utr3$gene_id)
 
-cl <- makeForkCluster(cl = opt$threads)
-utr3.list <- parLapply(cl = cl, utr3.l, reduce)
-stopCluster(cl)
+# cl <- makeForkCluster(cl = opt$threads)
+# utr3.list <- parLapply(cl = cl, utr3.l, reduce)
+# stopCluster(cl)
+utr3.list <- mclapply(utr3.l, reduce, mc.cores = opt$threads)
 
 utr3.gr <- unlist(GRangesList(utr3.list))
 utr3.gr$gene_id <- names(utr3.gr)
@@ -75,6 +77,7 @@ names(utr3.gr) <- NULL
 # ==========
 # First annotate ones that only overlap one 3' UTRs
 # ==========
+seqlevelsStyle(bed) <- seqlevelsStyle(TxDb)[1]
 
 message("Annotating with exact overlaps")
 
@@ -107,10 +110,15 @@ multi.utr3$gene_id <- parSapply(cl = cl, 1:length(multi.utr3), function(i) {
   matching.genes <- genes.gr[genes.gr$gene_id %in% matching.genes$gene_id]
   
   # Select protein coding
-  if(any(matching.genes$gene_type == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_type == "protein_coding"]
+  if(opt$ensembl) {
+    if(any(matching.genes$gene_biotype == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_biotype == "protein_coding"]
+  } else {
+    if(any(matching.genes$gene_type == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_type == "protein_coding"]
+  }
+  
   
   # Select highest level
-  if(any(abs(diff(as.numeric(matching.genes$level))) > 0)) matching.genes <- matching.genes[matching.genes$level == min(as.numeric(matching.genes$level))]
+  if(any(abs(diff(as.numeric(matching.genes$level))) > 0)) matching.genes <- matching.genes[matching.genes$level == min(as.numeric(matching.genes$level))] # This is only for GENCODE human/mouse
   
   # Select longest gene
   matching.genes <- matching.genes[order(width(matching.genes), decreasing = TRUE)]
@@ -146,7 +154,11 @@ multi.no.utr3$gene_id <- parSapply(cl = cl, 1:length(multi.no.utr3), function(i)
   matching.genes <- genes.gr[genes.gr$gene_id %in% matching.genes$gene_id]  
   
   # Select protein coding
-  if(any(matching.genes$gene_type == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_type == "protein_coding"]
+  if(opt$ensembl) {
+    if(any(matching.genes$gene_biotype == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_biotype == "protein_coding"]
+  } else {
+    if(any(matching.genes$gene_type == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_type == "protein_coding"]
+  }
   
   # Select highest level
   if(any(abs(diff(as.numeric(matching.genes$level))) > 0)) matching.genes <- matching.genes[matching.genes$level == min(as.numeric(matching.genes$level))]
@@ -193,7 +205,11 @@ multi.gene$gene_id <- parSapply(cl = cl, 1:length(multi.gene), function(i) {
   matching.genes <- genes.gr[ol.dt[queryHits == i]$subjectHits]
   
   # Select protein coding
-  if(any(matching.genes$gene_type == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_type == "protein_coding"]
+  if(opt$ensembl) {
+    if(any(matching.genes$gene_biotype == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_biotype == "protein_coding"]
+  } else {
+    if(any(matching.genes$gene_type == "protein_coding")) matching.genes <- matching.genes[matching.genes$gene_type == "protein_coding"]
+  }
   
   # Select highest level
   if(any(abs(diff(as.numeric(matching.genes$level))) > 0)) matching.genes <- matching.genes[matching.genes$level == min(as.numeric(matching.genes$level))]

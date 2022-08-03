@@ -25,6 +25,7 @@ process ANNOTATE_POLYA_SITES {
         --threads ${task.cpus} \
         --bed $bed \
         --gff3 $gff3 \
+        $args \
         > annotate_pas.log 2>&1
 
     cat <<-END_VERSIONS > versions.yml

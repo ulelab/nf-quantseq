@@ -53,30 +53,30 @@ workflow GENERATE_COUNT_TABLE {
         STAR_ALIGN.out.bam_sorted
     )
 
-    STAR_INPUTALIGNMENTSFROMBAM.out.unique_coverage
+    STAR_INPUTALIGNMENTSFROMBAM.out.unique_coverage_pos
         .map{ tuple ->
             def new_meta = tuple[0].clone()
             new_meta["id"] += "_pos"
-            [new_meta, tuple[1][0]] 
+            [new_meta, tuple[1]] 
         }
         .set{ bedgraph_pos }
 
-    STAR_INPUTALIGNMENTSFROMBAM.out.unique_coverage
+    STAR_INPUTALIGNMENTSFROMBAM.out.unique_coverage_neg
         .map{ tuple ->
             def new_meta = tuple[0].clone()
             new_meta["id"] += "_neg"
-            [new_meta, tuple[1][0]] 
+            [new_meta, tuple[1]] 
         }
         .set{ bedgraph_neg }
 
     BEDTOOLS_SORT_POS(
         bedgraph_pos,
-        "sorted.bg"
+        "sorted.bedgraph"
     )
 
     BEDTOOLS_SORT_NEG(
         bedgraph_neg,
-        "sorted.bg"
+        "sorted.bedgraph"
     )
 
     UCSC_BEDGRAPHTOBIGWIG_POS(

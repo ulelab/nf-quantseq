@@ -16,13 +16,20 @@ option_list <- list(make_option(c("", "--bg_pos"), action = "store", type = "cha
                     make_option(c("", "--pas"), action = "store", type = "character", help = "Threshold for sites with canonical polyA signal"),
                     make_option(c("", "--apa"), action = "store", type = "character", help = "Threshold for sites with alternative polyA signal"),
                     make_option(c("", "--nopas"), action = "store", type = "character", help = "Threshold for sites with no polyA signal"),
-                    make_option(c("", "--clusterdist"), action = "store", type = "character", help = "Distance within which to cluster pA sites"))
+                    make_option(c("", "--clusterdist"), action = "store", type = "character", help = "Distance within which to cluster pA sites"),
+                    make_option(c("", "--org"), action = "store", type = "character", help = "Organism [human, mouse, rat]"),
+                    make_option(c("", "--cores"), action = "store", type = "integer", help = "Numer of processors"))
 opt_parser = OptionParser(option_list = option_list)
 opt <- parse_args(opt_parser)
 
-if(length(opt) != 9) {
+if(length(opt) != 11) {
   print_help(opt_parser)
   stop("Not enough arguments.")
+}
+
+if(!opt$org %in% c("human", "mouse", "rat")) {
+  print_help(opt_parser)
+  stop("--org should be one of [human, mouse, rat].")
 }
 
 # ==========
@@ -34,10 +41,13 @@ suppressPackageStartupMessages(library(rtracklayer))
 suppressPackageStartupMessages(library(GenomicFeatures))
 suppressPackageStartupMessages(library(GenomicRanges))
 suppressPackageStartupMessages(library(BSgenome.Hsapiens.UCSC.hg38))
+suppressPackageStartupMessages(library(BSgenome.Mmusculus.UCSC.mm10))
+suppressPackageStartupMessages(library(BSgenome.Rnorvegicus.UCSC.rn6))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(scales))
 suppressPackageStartupMessages(library(ggthemes))
 suppressPackageStartupMessages(library(cowplot))
+suppressPackageStartupMessages(library(parallel))
 
 # ==========
 # Remove random priming before merging
@@ -62,13 +72,19 @@ message(length(polya.gr), " out of ", length(bg), " remaining")
 
 message("Getting 120 nt window sequence")
 
+sls <- seqlevelsStyle(polya.gr)[1]
+
 seqlevelsStyle(polya.gr) <- "UCSC"
 polya.gr <- keepStandardChromosomes(polya.gr, pruning.mode = "coarse")
 
 polya.120.gr <- resize(resize(polya.gr, width = 1, fix = "end"), width = 121, fix = "center") # fix end of polya region
 
 # Get sequence for that region
-polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr)
+if(opt$org == "human") { polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr) }
+if(opt$org == "mouse") { polya.gr$sequence <- getSeq(Mmusculus, polya.120.gr) }
+if(opt$org == "rat") { polya.gr$sequence <- getSeq(Rnorvegicus, polya.120.gr) }
+
+seqlevelsStyle(polya.gr) <- sls
 
 # ==========
 # A content
@@ -77,14 +93,14 @@ polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr)
 message("Examining A content")
 
 # Examine the A content in the 20 nt downstream of the start of the polyA cluster
-polya.gr$A_content <- unlist(lapply(polya.gr$sequence, function(x) {
+polya.gr$A_content <- unlist(mclapply(polya.gr$sequence, function(x) {
 
   downstream.seq <- substr(x, start = 61, stop = 80)
   fraction_A <- letterFrequency(DNAString(downstream.seq), "A", as.prob = TRUE)
 
   return(fraction_A)
 
-}))
+}, mc.cores = opt$cores))
 
 # Plot A content distribution
 p <- ggplot(as.data.table(polya.gr), aes(x = A_content)) +
@@ -249,18 +265,19 @@ message(paste0("Input clusters: ", nrow(polya.dt)))
 message(paste0("Output clusters after filtering: ", nrow(polya.filtered.bed)))
 
 # Write filtered BED file
-fwrite(polya.filtered.bed, opt$output, sep = "\t", col.names = FALSE)
+# fwrite(polya.filtered.bed, opt$output, sep = "\t", col.names = FALSE)
 
 # Write filtered bedgraph file
-polya.filtered.bed[, start := start + 1L]
-polya.bg <- GRanges(polya.filtered.bed)
-polya.bg[strand(polya.bg) == "-"]$score <- -polya.bg[strand(polya.bg) == "-"]$score
-export.bedGraph(polya.bg, paste0(opt$output, "graph"))
+# polya.filtered.bed[, start := start + 1L]
+# polya.bg <- GRanges(polya.filtered.bed)
+# polya.bg[strand(polya.bg) == "-"]$score <- -polya.bg[strand(polya.bg) == "-"]$score
+# export.bedGraph(polya.bg, paste0(opt$output, "graph"))
 
 # ==========
 # Merge within window and select unique pA site
 # ==========
 
+polya.filtered.bed[, start := start + 1L] # shift back before 
 bg <- GRanges(polya.filtered.bed)
 bed <- reduce(bg, min.gapwidth = as.integer(opt$clusterdist)) # merge ones within 10 nt of each other
 bed$id <- paste0("PAS", 1:length(bed))
@@ -284,12 +301,13 @@ neg.bg <- neg.bg[start == prime_3]
 unique.bg <- rbind(pos.bg, neg.bg)
 stopifnot(all(bg$id %in% unique.bg$id))
 
+unique.bg[, id := paste0(id, "_", PAS, "_", A_content)]
 unique.bg <- GRanges(unique.bg)
 unique.bg$name <- unique.bg$id
-export.bed(unique.bg, gsub("bed$", "unique.bed", opt$output))
+export.bed(unique.bg, gsub("bed$", "filteredunique.bed", opt$output))
 
-unique.bg[strand(unique.bg) == "-"]$score <- -unique.bg[strand(unique.bg) == "-"]$score
-export.bedGraph(unique.bg, gsub("bed$", "unique.bedgraph", opt$output))
+# unique.bg[strand(unique.bg) == "-"]$score <- -unique.bg[strand(unique.bg) == "-"]$score
+# export.bedGraph(unique.bg, gsub("bed$", "unique.bedgraph", opt$output))
 
 # ==========
 # End

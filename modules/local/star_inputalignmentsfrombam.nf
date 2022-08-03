@@ -1,5 +1,5 @@
 process STAR_INPUTALIGNMENTSFROMBAM {
-    tag "$fasta"
+    tag "$meta.id"
     label 'process_high'
 
     // Note: 2.7X indices incompatible with AWS iGenomes.
@@ -12,9 +12,11 @@ process STAR_INPUTALIGNMENTSFROMBAM {
     tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path("$prefix*.Unique.*")        , emit: unique_coverage
-    tuple val(meta), path("$prefix*.UniqueMultiple.*"), emit: unique_multiple_coverage
-    path "versions.yml"                               , emit: versions
+    tuple val(meta), path("$prefix*.Unique.str1*")        , emit: unique_coverage_pos
+    tuple val(meta), path("$prefix*.Unique.str2*")        , emit: unique_coverage_neg
+    tuple val(meta), path("$prefix*.UniqueMultiple.str1*"), emit: unique_multiple_coverage_pos
+    tuple val(meta), path("$prefix*.UniqueMultiple.str2*"), emit: unique_multiple_coverage_neg
+    path "versions.yml"                                   , emit: versions
 
     script:
     def args = task.ext.args ?: ''

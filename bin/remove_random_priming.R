@@ -27,7 +27,7 @@ if(length(opt) != 11) {
   stop("Not enough arguments.")
 }
 
-if(!opt$org %in% c("human", "mouse", "rat")) {
+if(!opt$org %in% c("hg38", "mm10", "mm39", "rn6", "rn7")) {
   print_help(opt_parser)
   stop("--org should be one of [human, mouse, rat].")
 }

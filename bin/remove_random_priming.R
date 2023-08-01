@@ -40,9 +40,6 @@ suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(rtracklayer))
 suppressPackageStartupMessages(library(GenomicFeatures))
 suppressPackageStartupMessages(library(GenomicRanges))
-suppressPackageStartupMessages(library(BSgenome.Hsapiens.UCSC.hg38))
-suppressPackageStartupMessages(library(BSgenome.Mmusculus.UCSC.mm10))
-suppressPackageStartupMessages(library(BSgenome.Rnorvegicus.UCSC.rn6))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(scales))
 suppressPackageStartupMessages(library(ggthemes))
@@ -80,9 +77,26 @@ polya.gr <- keepStandardChromosomes(polya.gr, pruning.mode = "coarse")
 polya.120.gr <- resize(resize(polya.gr, width = 1, fix = "end"), width = 121, fix = "center") # fix end of polya region
 
 # Get sequence for that region
-if(opt$org == "human") { polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr) }
-if(opt$org == "mouse") { polya.gr$sequence <- getSeq(Mmusculus, polya.120.gr) }
-if(opt$org == "rat") { polya.gr$sequence <- getSeq(Rnorvegicus, polya.120.gr) }
+if(opt$org == "hg38") { 
+  suppressPackageStartupMessages(library(BSgenome.Hsapiens.UCSC.hg38))
+  polya.gr$sequence <- getSeq(Hsapiens, polya.120.gr) 
+}
+if(opt$org == "mm10") { 
+  suppressPackageStartupMessages(library(BSgenome.Mmusculus.UCSC.mm10))
+  polya.gr$sequence <- getSeq(Mmusculus, polya.120.gr) 
+}
+if(opt$org == "mm39") { 
+  suppressPackageStartupMessages(library(BSgenome.Mmusculus.UCSC.mm39))
+  polya.gr$sequence <- getSeq(Mmusculus, polya.120.gr) 
+}
+if(opt$org == "rn6") { 
+  suppressPackageStartupMessages(library(BSgenome.Rnorvegicus.UCSC.rn6))
+  polya.gr$sequence <- getSeq(Rnorvegicus, polya.120.gr) 
+}
+if(opt$org == "rn7") { 
+  suppressPackageStartupMessages(library(BSgenome.Rnorvegicus.UCSC.rn7))
+  polya.gr$sequence <- getSeq(Rnorvegicus, polya.120.gr) 
+}
 
 seqlevelsStyle(polya.gr) <- sls
 

@@ -23,7 +23,7 @@ process RANDOM_PRIMING {
     def args = task.ext.args ?: ''
     prefix = task.ext.prefix ?: "${meta.id}"
     """
-    remove_random_priming.R \
+    remove_random_priming_v2.R \
         --bg_pos $pos_bedgraph \
         --bg_neg $neg_bedgraph \
         --output ${prefix}.bed \

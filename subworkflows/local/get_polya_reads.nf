@@ -7,23 +7,25 @@ workflow GET_POLYA_READS {
     reads
 
     main:
+    /* STEP 1 ─ poly-A specific pre-filter
+     * Run only for FWD; REV skips straight to STEP 2
+     */
     if ( !params.quantseq_rev ) {
-        CUTADAPT_UNTRIMMED( reads )          // keeps “trimmed-only” behaviour
+        CUTADAPT_UNTRIMMED( reads )
         ch_trim_input = CUTADAPT_UNTRIMMED.out.reads
     } else {
-        // REV: skip the poly-A–specific filter
         ch_trim_input = reads
     }
 
-
+    /* STEP 2 ─ adapter / quality trimming */
     if ( params.quantseq_rev ) {
-        // trim adapter, keep everything else.
+        // Lexogen‐REV guidance: trim Illumina adapter only
         CUTADAPT(
             ch_trim_input,
             ext.args: '-m 18 -O 3 -a "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"'
         )
     } else {
-        // Original FWD behaviour (unchanged).
+        // FWD: original behaviour (poly-A removal + 12 nt hard-cut)
         CUTADAPT(
             ch_trim_input,
             ext.args: '-m 18 --cut 12 --no-indels -e 0 -a "A{1000}"'

@@ -6,24 +6,14 @@ workflow GET_POLYA_READS {
     reads
 
     main:
-        if( params.quantseq_rev ) {
+    CUTADAPT_UNTRIMMED(
+        reads
+    )
 
-            // REV ─ run Cutadapt once, with **no** adapter specified.
-            CUTADAPT(
-                reads,
-                ext.args: '-m 18'          // length filter only
-            )
-
-        } else {
-
-            // Original FWD path (unchanged)
-            CUTADAPT_UNTRIMMED( reads )
-
-            CUTADAPT(
-                CUTADAPT_UNTRIMMED.out.reads
-            )
-        }
+    CUTADAPT(
+        CUTADAPT_UNTRIMMED.out.reads
+    )
 
     emit:
-        reads = CUTADAPT.out.reads
+    reads = CUTADAPT.out.reads
 }

@@ -7,25 +7,26 @@ workflow GET_POLYA_READS {
         reads
 
     main:
-        /* ── STEP 1: poly-A specific pre-filter ───────────────────────── */
-        if ( !params.quantseq_rev ) {
-            // FWD libraries: keep only reads ending in ≥5 A’s
+        /* ── STEP 1 ─ poly-A keep-filter (FWD only) ─────────────────── */
+        def ch_trim_input
+        if( !params.quantseq_rev ) {
+            // For FWD: keep only reads ending in ≥5 A’s
             CUTADAPT_UNTRIMMED( reads )
             ch_trim_input = CUTADAPT_UNTRIMMED.out.reads
         } else {
-            // REV libraries: skip this filter
+            // REV libraries skip this filter
             ch_trim_input = reads
         }
 
-        /* ── STEP 2: adapter / quality trimming ───────────────────────── */
-        if ( params.quantseq_rev ) {
-            // REV: follow Lexogen guide — trim Illumina adapter only
+        /* ── STEP 2 ─ adapter / quality trimming ─────────────────────── */
+        if( params.quantseq_rev ) {
+            // REV  -- Lexogen guide: trim Illumina adapter only
             CUTADAPT(
                 ch_trim_input,
                 ext.args: '-m 18 -O 3 -a "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"'
             )
         } else {
-            // FWD: original behaviour (poly-A removal + 12-nt hard cut)
+            // FWD -- original behaviour (poly-A removal + 12-nt hard-cut)
             CUTADAPT(
                 ch_trim_input,
                 ext.args: '-m 18 --cut 12 --no-indels -e 0 -a "A{1000}"'
@@ -35,4 +36,3 @@ workflow GET_POLYA_READS {
     emit:
         reads = CUTADAPT.out.reads
 }
-
